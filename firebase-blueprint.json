@@ -1,0 +1,163 @@
+{
+  "entities": {
+    "MasterLoanPool": {
+      "title": "Master Loan Pool",
+      "description": "An aggregated loan pool comprising multiple constituent individual borrowers backed by vault escrow collateral",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "cycleName": { "type": "string" },
+        "category": { "type": "string" },
+        "totalTargetAmount": { "type": "number" },
+        "amountFunded": { "type": "number" },
+        "remainingAmount": { "type": "number" },
+        "term": { "type": "string" },
+        "termDays": { "type": "number" },
+        "interestRate": { "type": "number" },
+        "totalRepaymentDue": { "type": "number" },
+        "totalCollateralValue": { "type": "number" },
+        "collateralCoverageRatio": { "type": "number" },
+        "vaultDepot": { "type": "string" },
+        "status": { "type": "string", "enum": ["OPEN", "FULLY_FUNDED", "DISBURSED", "SETTLED"] },
+        "createdAt": { "type": "string" },
+        "deadlineDate": { "type": "string" },
+        "borrowerCount": { "type": "number" },
+        "borrowers": { "type": "array" },
+        "investorCount": { "type": "number" },
+        "investments": { "type": "array" }
+      },
+      "required": ["id", "title", "totalTargetAmount", "amountFunded", "term", "status"]
+    },
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Registered user profile with real wallet balance and bank account",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "fullName": { "type": "string" },
+        "phoneNumber": { "type": "string" },
+        "idNumber": { "type": "string" },
+        "address": { "type": "object" },
+        "role": { "type": "string", "enum": ["investor", "borrower", "both"] },
+        "availableBalance": { "type": "number" },
+        "totalInvested": { "type": "number" },
+        "totalEarned": { "type": "number" },
+        "createdAt": { "type": "string" },
+        "bankAccount": { "type": "object" },
+        "profileComplete": { "type": "boolean" }
+      },
+      "required": ["uid", "email", "availableBalance"]
+    },
+    "UserLoan": {
+      "title": "User Loan Record",
+      "description": "Borrower loan application and active repayment schedule",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "borrowerName": { "type": "string" },
+        "borrowerPhone": { "type": "string" },
+        "loanAmount": { "type": "number" },
+        "poolId": { "type": "string" },
+        "poolTitle": { "type": "string" },
+        "term": { "type": "string" },
+        "purpose": { "type": "string" },
+        "collateralItem": { "type": "string" },
+        "collateralCategory": { "type": "string" },
+        "collateralEstimatedValue": { "type": "number" },
+        "collateralCoverage": { "type": "number" },
+        "totalRepaymentDue": { "type": "number" },
+        "status": { "type": "string" },
+        "createdAt": { "type": "string" },
+        "deadlineDate": { "type": "string" }
+      },
+      "required": ["id", "userId", "loanAmount", "poolId", "collateralItem", "status"]
+    },
+    "WithdrawalRecord": {
+      "title": "Withdrawal Record",
+      "description": "Withdrawal request to South African bank account",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "userEmail": { "type": "string" },
+        "accountHolder": { "type": "string" },
+        "bankName": { "type": "string" },
+        "accountNumberMasked": { "type": "string" },
+        "accountType": { "type": "string" },
+        "branchCode": { "type": "string" },
+        "amount": { "type": "number" },
+        "fee": { "type": "number" },
+        "netAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["PENDING", "PROCESSED", "COMPLETED", "CANCELLED"] },
+        "requestedAt": { "type": "string" },
+        "reference": { "type": "string" }
+      },
+      "required": ["id", "userId", "amount", "bankName", "status", "reference"]
+    },
+    "UserInvestment": {
+      "title": "User Investment Record",
+      "description": "Record of an investment made into a master loan pool",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "poolId": { "type": "string" },
+        "poolTitle": { "type": "string" },
+        "investedAmount": { "type": "number" },
+        "interestRate": { "type": "number" },
+        "expectedReturn": { "type": "number" },
+        "totalPayout": { "type": "number" },
+        "term": { "type": "string" },
+        "investedAt": { "type": "string" },
+        "maturityDate": { "type": "string" },
+        "status": { "type": "string" }
+      },
+      "required": ["id", "poolId", "investedAmount", "expectedReturn"]
+    },
+    "WalletTransaction": {
+      "title": "Wallet Transaction",
+      "description": "Financial ledger record for deposits, withdrawals, and payouts",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "userId": { "type": "string" },
+        "type": { "type": "string", "enum": ["DEPOSIT", "WITHDRAWAL", "INVESTMENT", "RETURN_PAYOUT"] },
+        "amount": { "type": "number" },
+        "description": { "type": "string" },
+        "status": { "type": "string" },
+        "reference": { "type": "string" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["id", "userId", "type", "amount", "status"]
+    }
+  },
+  "firestore": {
+    "/master_loan_pools/{poolId}": {
+      "schema": "#/entities/MasterLoanPool",
+      "description": "Collection of all aggregated master loan pools"
+    },
+    "/users/{userId}": {
+      "schema": "#/entities/UserProfile",
+      "description": "User profile with real balance and bank account"
+    },
+    "/users/{userId}/withdrawals/{withdrawalId}": {
+      "schema": "#/entities/WithdrawalRecord",
+      "description": "User withdrawal requests to bank accounts"
+    },
+    "/users/{userId}/investments/{investmentId}": {
+      "schema": "#/entities/UserInvestment",
+      "description": "User portfolio investments"
+    },
+    "/users/{userId}/loans/{loanId}": {
+      "schema": "#/entities/UserLoan",
+      "description": "User loan applications and repayment tracking"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "#/entities/WalletTransaction",
+      "description": "User ledger transactions"
+    }
+  }
+}

@@ -1,0 +1,89 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidPool(data) {
+      return data.id is string && data.id.size() <= 128
+        && data.title is string && data.title.size() <= 200
+        && data.totalTargetAmount is number && data.totalTargetAmount >= 0
+        && data.amountFunded is number && data.amountFunded >= 0
+        && data.remainingAmount is number && data.remainingAmount >= 0
+        && data.term is string && data.term.size() <= 50
+        && data.interestRate is number && data.interestRate >= 0
+        && data.status in ['OPEN', 'FULLY_FUNDED', 'DISBURSED', 'SETTLED', 'REPAID'];
+    }
+
+    // Public marketplace master loan pools
+    match /master_loan_pools/{poolId} {
+      allow read: if true;
+      allow create: if isValidId(poolId) && isValidPool(incoming());
+      allow update: if isValidId(poolId) && isValidPool(incoming());
+      allow delete: if false;
+    }
+
+    // User profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAuthenticated();
+      allow create: if isValidId(userId) && (isOwner(userId) || incoming().uid == userId);
+      allow update: if isOwner(userId) || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if false;
+
+      // Withdrawals subcollection
+      match /withdrawals/{withdrawalId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(withdrawalId);
+        allow update: if isOwner(userId);
+        allow delete: if false;
+      }
+
+      // User investments subcollection
+      match /investments/{investmentId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(investmentId);
+        allow update: if isOwner(userId);
+        allow delete: if false;
+      }
+
+      // User loans subcollection
+      match /loans/{loanId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(loanId);
+        allow update: if isOwner(userId);
+        allow delete: if false;
+      }
+
+      // User transactions subcollection
+      match /transactions/{transactionId} {
+        allow read: if isOwner(userId);
+        allow create: if isOwner(userId) && isValidId(transactionId);
+        allow update: if isOwner(userId);
+        allow delete: if false;
+      }
+    }
+
+    // Default deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

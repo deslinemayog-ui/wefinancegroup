@@ -1,0 +1,6 @@
+{
+  "name": "WeFinance Group — Investment Marketplace",
+  "description": "Secured collateral-backed investment marketplace and funding pool platform connecting investors with verified opportunities in South Africa.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
